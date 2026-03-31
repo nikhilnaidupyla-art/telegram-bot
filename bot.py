@@ -5,9 +5,9 @@ import threading
 
 # Your details
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "8711220932:AAG7YkP69uz9oMqTebvWaXWbsDc8jVhOFXU")
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 YOUR_NAME = "Nik"
-BOT_NAME = "Ava"
+BOT_NAME = "rabbit"
 
 SYSTEM_PROMPT = f"""You are {BOT_NAME}, {YOUR_NAME}'s personal AI assistant on Telegram.
 You are helpful, friendly, and concise.
@@ -21,30 +21,27 @@ def send_message(chat_id, text):
     payload = {"chat_id": chat_id, "text": text}
     requests.post(url, json=payload)
 
-def ask_gemini(user_text):
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key={GEMINI_API_KEY}"
+def ask_groq(user_text):
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Content-Type": "application/json"
+    }
     payload = {
-        "contents": [
-            {
-                "parts": [
-                    {"text": f"{SYSTEM_PROMPT}\n\nUser: {user_text}\n{BOT_NAME}:"}
-                ]
-            }
+        "model": "llama-3.1-8b-instant",
+        "messages": [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": user_text}
         ]
     }
-    response = requests.post(url, json=payload)
+    response = requests.post(url, headers=headers, json=payload)
     data = response.json()
-    print(f"Gemini response: {data}")
-    if "candidates" in data:
-        return data["candidates"][0]["content"]["parts"][0]["text"]
-    else:
-        error_msg = data.get("error", {}).get("message", "Unknown error")
-        print(f"Gemini error: {error_msg}")
-        return f"API Error: {error_msg}"
+    print(f"Groq response: {data}")
+    return data["choices"][0]["message"]["content"]
 
 def process_and_reply(chat_id, user_text):
     try:
-        reply = ask_gemini(user_text)
+        reply = ask_groq(user_text)
         send_message(chat_id, reply)
     except Exception as e:
         send_message(chat_id, "Sorry, I'm having trouble right now. Try again! 🤖")
