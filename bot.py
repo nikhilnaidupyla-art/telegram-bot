@@ -2,15 +2,12 @@ import os
 import requests
 from flask import Flask, request
 import threading
-from google import genai
 
 # Your details
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "8711220932:AAG7YkP69uz9oMqTebvWaXWbsDc8jVhOFXU")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 YOUR_NAME = "Nik"
-BOT_NAME = "rabbit"
-
-client = genai.Client(api_key=GEMINI_API_KEY)
+BOT_NAME = "Ava"
 
 SYSTEM_PROMPT = f"""You are {BOT_NAME}, {YOUR_NAME}'s personal AI assistant on Telegram.
 You are helpful, friendly, and concise.
@@ -24,17 +21,27 @@ def send_message(chat_id, text):
     payload = {"chat_id": chat_id, "text": text}
     requests.post(url, json=payload)
 
+def ask_gemini(user_text):
+    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+    payload = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": f"{SYSTEM_PROMPT}\n\nUser: {user_text}\n{BOT_NAME}:"}
+                ]
+            }
+        ]
+    }
+    response = requests.post(url, json=payload)
+    data = response.json()
+    return data["candidates"][0]["content"]["parts"][0]["text"]
+
 def process_and_reply(chat_id, user_text):
     try:
-        full_prompt = f"{SYSTEM_PROMPT}\n\nUser: {user_text}\n{BOT_NAME}:"
-        response = client.models.generate_content(
-            model="gemini-1.5-flash",
-            contents=full_prompt
-        )
-        reply = response.text
+        reply = ask_gemini(user_text)
         send_message(chat_id, reply)
     except Exception as e:
-        send_message(chat_id, "Sorry, I'm having trouble right now. Try again in a moment! 🤖")
+        send_message(chat_id, "Sorry, I'm having trouble right now. Try again! 🤖")
         print(f"Error: {e}")
 
 @app.route(f"/{TELEGRAM_TOKEN}", methods=["POST"])
