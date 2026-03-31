@@ -28,7 +28,7 @@ def process_and_reply(chat_id, user_text):
     try:
         full_prompt = f"{SYSTEM_PROMPT}\n\nUser: {user_text}\n{BOT_NAME}:"
         response = client.models.generate_content(
-            model="gemini-1.5-flash-8b",
+            model="gemini-1.5-flash",
             contents=full_prompt
         )
         reply = response.text
