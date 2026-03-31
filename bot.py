@@ -6,7 +6,7 @@ import threading
 
 # ✏️ Fill these in
 TELEGRAM_TOKEN = "8711220932:AAG7YkP69uz9oMqTebvWaXWbsDc8jVhOFXU"
-GEMINI_API_KEY = "AIzaSyBd_IJU-LiebL2BzkF5dCaNGH5VUeKzeMM"
+GEMINI_API_KEY = GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 YOUR_NAME = "Nik"
 BOT_NAME = "rabbit"
 
