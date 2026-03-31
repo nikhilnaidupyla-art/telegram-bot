@@ -34,7 +34,13 @@ def ask_gemini(user_text):
     }
     response = requests.post(url, json=payload)
     data = response.json()
-    return data["candidates"][0]["content"]["parts"][0]["text"]
+    print(f"Gemini response: {data}")
+    if "candidates" in data:
+        return data["candidates"][0]["content"]["parts"][0]["text"]
+    else:
+        error_msg = data.get("error", {}).get("message", "Unknown error")
+        print(f"Gemini error: {error_msg}")
+        return f"API Error: {error_msg}"
 
 def process_and_reply(chat_id, user_text):
     try:
