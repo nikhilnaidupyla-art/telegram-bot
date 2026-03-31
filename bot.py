@@ -8,7 +8,7 @@ from google import genai
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "8711220932:AAG7YkP69uz9oMqTebvWaXWbsDc8jVhOFXU")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 YOUR_NAME = "Nik"
-BOT_NAME = "Ava"
+BOT_NAME = "rabbit"
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 
@@ -28,7 +28,7 @@ def process_and_reply(chat_id, user_text):
     try:
         full_prompt = f"{SYSTEM_PROMPT}\n\nUser: {user_text}\n{BOT_NAME}:"
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model="gemini-1.5-flash-8b",
             contents=full_prompt
         )
         reply = response.text
