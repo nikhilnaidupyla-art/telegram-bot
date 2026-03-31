@@ -1,18 +1,16 @@
 import os
 import requests
-import google.generativeai as genai
 from flask import Flask, request
 import threading
+from google import genai
 
-# ✏️ Fill these in
-TELEGRAM_TOKEN = "8711220932:AAG7YkP69uz9oMqTebvWaXWbsDc8jVhOFXU"
-GEMINI_API_KEY = GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+# Your details
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "8711220932:AAG7YkP69uz9oMqTebvWaXWbsDc8jVhOFXU")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 YOUR_NAME = "Nik"
-BOT_NAME = "rabbit"
+BOT_NAME = "Ava"
 
-# Set up Gemini
-genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel("gemini-1.5-flash")
+client = genai.Client(api_key=GEMINI_API_KEY)
 
 SYSTEM_PROMPT = f"""You are {BOT_NAME}, {YOUR_NAME}'s personal AI assistant on Telegram.
 You are helpful, friendly, and concise.
@@ -29,7 +27,10 @@ def send_message(chat_id, text):
 def process_and_reply(chat_id, user_text):
     try:
         full_prompt = f"{SYSTEM_PROMPT}\n\nUser: {user_text}\n{BOT_NAME}:"
-        response = model.generate_content(full_prompt)
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=full_prompt
+        )
         reply = response.text
         send_message(chat_id, reply)
     except Exception as e:
@@ -43,15 +44,10 @@ def webhook():
         message = data["message"]
         chat_id = message["chat"]["id"]
         user_text = message["text"]
-
-        # ✅ Reply to Telegram instantly so it doesn't timeout
         thread = threading.Thread(target=process_and_reply, args=(chat_id, user_text))
         thread.start()
-
     except Exception as e:
         print(f"Error: {e}")
-
-    # ✅ This returns immediately — no more timeout!
     return "OK", 200
 
 @app.route("/", methods=["GET"])
